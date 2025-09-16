@@ -1,8 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}{{section.title}} - Submißions{% endblock title %}
+{% block title %}{{section.title}} - EthBerlin04{% endblock title %}
 
 {% block main %}
+<div class="box has-text-centered mb-6">
+    <a href="/results" class="button is-link is-ghost is-large">
+        The hackathon is over; click here to see the results
+    </a>
+</div>
+
 <h1 class="title">{{section.title}}</h1>
 <h2 class="subtitle">{{section.description}}</h2>
 

@@ -1,5 +1,5 @@
 +++
-title = "EthBerlin04 Results"
+title = "EthBerlin04 Winners"
 template = "results.html"
 in_search_index = false
 +++
