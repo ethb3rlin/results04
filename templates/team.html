@@ -4,6 +4,19 @@
 
 {% block main %}
 <div class="content">
+    <h2 class="title"><span class="has-text-weight-normal">Team</span> {{page.title}}</h2>
+
     {{page.content | safe}}
+
+    {% if page.extra.submissions %}
+        <h3 class="title is-4 mt-6">Team's submissions:</h3>
+        <ul>
+            {% for submission in page.extra.submissions %}
+                {% if (submission.url and submission.title) %}
+                    <li><a href="{{ submission.url }}">{{ submission.title }}</a></li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    {% endif %}
 </div>
 {% endblock main %}
