@@ -1,0 +1,169 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>{% block title %} {% endblock title %} </title>
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css"
+        />
+    </head>
+    <body>
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <a class="navbar-item" id="navbar-logo-header" href="/">
+                    <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m12 8 6-3-6-3v10"></path><path d="m8 11.99-5.5 3.14a1 1 0 0 0 0 1.74l8.5 4.86a2 2 0 0 0 2 0l8.5-4.86a1 1 0 0 0 0-1.74L16 12"></path><path d="m6.49 12.85 11.02 6.3"></path><path d="M17.51 12.85 6.5 19.15"></path></svg>
+                    <span>Submißions</span>
+                </a>
+                <a class="navbar-burger" role="button" aria-label="menu" aria-expanded="false" data-target="submissionsNavbar">
+                    <span aria-hidden="true"></span>
+                    <span aria-hidden="true"></span>
+                    <span aria-hidden="true"></span>
+                </a>
+            </div>
+
+            <div id="submissionsNavbar" class="navbar-menu">
+                <div class="navbar-start">
+                    <a class="navbar-item is-tab
+                        {% if current_path is starting_with("/submissions") %}is-active{% endif %}"
+                        href="/submissions">Browse projects</a>
+                    <a class="navbar-item is-tab
+                        {% if current_path is starting_with("/teams") %}is-active{% endif %}"
+                        href="/teams">Hacking teams</a>
+                </div>
+            </div>
+
+            <!-- search field on the right of the navbar -->
+            <div class="navbar-end">
+                <div class="navbar-item">
+                    <form action="/search" method="get">
+                        <div class="field has-addons">
+                            <div class="control">
+                                <input class="input" type="text" name="q" id="search-input" placeholder="Search...">
+                            </div>
+                            <div class="control">
+                                <button class="button is-info" type="submit">Search</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </nav>
+
+        <section class="section">
+            <!-- Showing search results on top of the main content -->
+            <div class="container">
+                <div id="search-results" style="display: none;">
+                    <h2 class="title is-4">Search Results</h2>
+                    <div id="search-results-list"></div>
+                    <hr />
+                </div>
+            </div>
+
+            <div class="container">
+                {% block main %} {% endblock main %}
+            </div>
+        </section>
+
+        <!-- and now our search impl -->
+        <!-- Include elasticlunr.js -->
+        <script src="{{ get_url(path="elasticlunr.min.js") }}"></script>
+        <!-- Include the search index -->
+        <script src="{{ get_url(path="search_index.en.js") }}"></script>
+
+        <!-- Search implementation -->
+        <script>
+            // Initialize elasticlunr
+            let searchIndex = null;
+
+            // Wait for the search index to load
+            if (typeof elasticlunr !== 'undefined' && typeof window.searchIndex !== 'undefined') {
+                // Build the search index
+                searchIndex = elasticlunr.Index.load(window.searchIndex);
+            }
+
+            // Search functionality
+            const searchInput = document.getElementById('search-input');
+            const searchResults = document.getElementById('search-results');
+            const searchResultsList = document.getElementById('search-results-list');
+
+            function performSearch(query) {
+                if (!searchIndex || !query.trim()) {
+                    searchResults.style.display = 'none';
+                    return;
+                }
+
+                // Perform the search
+                const results = searchIndex.search(query, {
+                    expand: true,
+                    boost: {
+                        title: 2,
+                        body: 1
+                    }
+                });
+
+                // Display results
+                if (results.length > 0) {
+                    searchResults.style.display = 'block';
+
+                    let html = '';
+                    results.forEach(result => {
+
+                        // Highlight matches in title and body
+                        const highlightedTitle = highlightTerms(result.doc.title, query);
+                        const highlightedBody = highlightTerms(result.doc.body, query);
+
+                        html += `
+                            <div class="box">
+                                <h4 class="title is-5">
+                                    <a href="${result.ref}">${highlightedTitle}</a>
+                                </h4>
+                                <p>${highlightedBody}</p>
+                            </div>
+                        `;
+                    });
+                    searchResultsList.innerHTML = html;
+                } else {
+                    searchResults.style.display = 'block';
+                    searchResultsList.innerHTML = '<div class="notification is-warning">No results found.</div>';
+                }
+            }
+
+            // Function to highlight search terms
+            function highlightTerms(text, query) {
+                if (!text || !query) return text;
+
+                // Split query into individual terms and escape special regex characters
+                const terms = query.trim().split(/\s+/).map(term =>
+                    term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+                );
+
+                // Create regex pattern that matches any of the terms (case insensitive)
+                const pattern = new RegExp(`(${terms.join('|')})`, 'gi');
+
+                // Replace matches with highlighted version
+                return text.replace(pattern, '<mark class="has-background-warning">$1</mark>');
+            }
+
+            // Add debouncing for better performance
+            let searchTimeout;
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    performSearch(e.target.value);
+                }, 300);
+            });
+
+            // Clear search on Escape key
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    searchInput.value = '';
+                    searchResults.style.display = 'none';
+                    pageList.style.display = 'block';
+                }
+            });
+        </script>
+
+    </body>
+</html>
