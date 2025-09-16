@@ -1,3 +1,3 @@
 +++
-redirect_to = "/submissions"
+redirect_to = "/results"
 +++
