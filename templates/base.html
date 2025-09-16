@@ -149,9 +149,16 @@
                         const highlightedTitle = highlightTerms(result.doc.title, query);
                         const highlightedBody = highlightTerms(result.doc.body, query);
 
+                        // Result type icon, either "submission" or "team", detected from the ref URL
+                        let resultIcon = "";
+                        if (result.ref.includes('/teams/')) {
+                            resultIcon = `<svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon is-small"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`;
+                        };
+
                         html += `
                             <div class="box">
                                 <h4 class="title is-5">
+                                    ${resultIcon}
                                     <a href="${result.ref}">${highlightedTitle}</a>
                                 </h4>
                                 <p>${highlightedBody}</p>
