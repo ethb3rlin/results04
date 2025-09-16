@@ -20,5 +20,8 @@
     </p>
 
     {{page.content | safe}}
+
+    {{ macros::repo_link(url=page.extra.repo_url) }}
+    {{ macros::pitch_link(url=page.extra.pitchdeck_url) }}
 </div>
 {% endblock main %}
